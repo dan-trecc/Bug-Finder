@@ -1,0 +1,53 @@
+[gd_scene format=3 uid="uid://rdpe2bppwuuw"]
+
+[ext_resource type="Texture2D" uid="uid://kks8341c658g" path="res://icon.svg" id="1_vhirs"]
+
+[node name="StickFigure" type="Node2D" unique_id=1172394337]
+
+[node name="Body" type="Sprite2D" parent="." unique_id=381592160]
+position = Vector2(-152.25002, -14.499985)
+scale = Vector2(6.7304688, 7.695312)
+texture = ExtResource("1_vhirs")
+
+[node name="LegR" type="Sprite2D" parent="Body" unique_id=1858975664]
+position = Vector2(46.837097, 112.75)
+scale = Vector2(0.18295743, 0.8105469)
+texture = ExtResource("1_vhirs")
+
+[node name="LegL" type="Sprite2D" parent="Body" unique_id=1292797677]
+position = Vector2(-31.438606, 114.25003)
+scale = Vector2(0.197995, 0.82421875)
+texture = ExtResource("1_vhirs")
+
+[node name="LowerArmL" type="Sprite2D" parent="Body" unique_id=1261973541]
+position = Vector2(-170.34589, -87.750015)
+rotation = 0.57911736
+scale = Vector2(0.7019482, 0.18248425)
+skew = 0.2432158
+texture = ExtResource("1_vhirs")
+
+[node name="UpperArmL" type="Sprite2D" parent="Body/LowerArmL" unique_id=2065974229]
+position = Vector2(102.669525, -59.92865)
+rotation = -0.7168498
+scale = Vector2(1.2089254, 0.928181)
+skew = 0.6528183
+texture = ExtResource("1_vhirs")
+
+[node name="UpperArmR" type="Sprite2D" parent="Body" unique_id=334412278]
+position = Vector2(107.14789, -43.000004)
+rotation = -0.27638164
+scale = Vector2(0.7433976, 0.14820418)
+skew = -0.1605599
+texture = ExtResource("1_vhirs")
+
+[node name="LowerArmR" type="Sprite2D" parent="Body/UpperArmR" unique_id=1181215730]
+position = Vector2(113.90851, -45.74759)
+rotation = -0.98606586
+scale = Vector2(1.5584974, 1.0701154)
+skew = 0.8985981
+texture = ExtResource("1_vhirs")
+
+[node name="Head" type="Sprite2D" parent="Body" unique_id=67710404]
+position = Vector2(0, -104.874)
+scale = Vector2(0.7832223, 0.70133054)
+texture = ExtResource("1_vhirs")
