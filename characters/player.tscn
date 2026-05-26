@@ -1,0 +1,14 @@
+[gd_scene format=3 uid="uid://dspni2lip6vso"]
+
+[ext_resource type="Script" uid="uid://bqh7vde67ddr2" path="res://characters/player.gd" id="1_3eadt"]
+[ext_resource type="Texture2D" uid="uid://dwl2pt3eisw8k" path="res://Textures/Player/player_sprite.png" id="1_dnjla"]
+
+[node name="Player" type="CharacterBody2D" unique_id=1382941740]
+motion_mode = 1
+script = ExtResource("1_3eadt")
+
+[node name="PlayerSprite" type="Sprite2D" parent="." unique_id=524189534]
+texture_filter = 1
+position = Vector2(-4, 5)
+texture = ExtResource("1_dnjla")
+hframes = 2
