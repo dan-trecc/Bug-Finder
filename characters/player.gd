@@ -2,6 +2,7 @@ extends CharacterBody2D
 
 
 var movement_speed : float = 75.0 
+var hp = 80
 @onready var sprite = $PlayerSprite
 @onready var walkTimer = get_node("walkTimer")
 
@@ -28,3 +29,10 @@ func movement(): #function that controls movement
 
 	velocity = mov.normalized() * movement_speed #velocity * mov with normalized included to make diagonal movement and linear movement the same
 	move_and_slide() #causes character to move, includes Delta in calculation
+
+
+
+
+func _on_hurtbox_hurt(damage):
+	hp -= damage
+	print(hp)

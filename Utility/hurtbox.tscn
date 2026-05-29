@@ -1,0 +1,21 @@
+[gd_scene format=3 uid="uid://nch1dix6u48c"]
+
+[ext_resource type="Script" uid="uid://dieex5h8bmcgs" path="res://hurtbox.gd" id="1_kuaxy"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_kuaxy"]
+size = Vector2(16, 22)
+
+[node name="Hurtbox" type="Area2D" unique_id=1953681631 groups=["attack"]]
+collision_layer = 0
+collision_mask = 0
+script = ExtResource("1_kuaxy")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=79908489]
+shape = SubResource("RectangleShape2D_kuaxy")
+
+[node name="DisableTimer" type="Timer" parent="." unique_id=1101171208]
+wait_time = 0.5
+one_shot = true
+
+[connection signal="area_entered" from="." to="." method="_on_area_entered"]
+[connection signal="timeout" from="DisableTimer" to="." method="_on_disable_timer_timeout"]
