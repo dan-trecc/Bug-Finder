@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://6gp6m674e07q"]
 
 [ext_resource type="Texture2D" uid="uid://bukdjgcvpgna" path="res://Textures/dirt_full_new.png" id="1_f3sb7"]
+[ext_resource type="PackedScene" uid="uid://cnm72o28ljm8o" path="res://characters/enemy.tscn" id="1_tlwt5"]
 [ext_resource type="PackedScene" uid="uid://dspni2lip6vso" path="res://characters/player.tscn" id="2_fj7yv"]
 
 [node name="World" type="Node2D" unique_id=1095861006]
@@ -12,5 +13,11 @@ texture = ExtResource("1_f3sb7")
 region_enabled = true
 region_rect = Rect2(-170.5, -150.75, 4000, 4000)
 
-[node name="Player" parent="." unique_id=1382941740 instance=ExtResource("2_fj7yv")]
+[node name="Player" parent="." unique_id=1382941740 groups=["player"] instance=ExtResource("2_fj7yv")]
+position = Vector2(3, -4)
 scale = Vector2(1.2, 1.2)
+
+[node name="Enemy_Bug_Weak" parent="." unique_id=1323907592 instance=ExtResource("1_tlwt5")]
+position = Vector2(223, 66)
+scale = Vector2(1.4208628, 1.221488)
+movement_speed = 55.0

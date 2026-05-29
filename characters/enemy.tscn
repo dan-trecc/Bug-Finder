@@ -1,0 +1,64 @@
+[gd_scene format=3 uid="uid://cnm72o28ljm8o"]
+
+[ext_resource type="Script" uid="uid://bc37d8k8y5v4m" path="res://characters/enemy.gd" id="1_nhupr"]
+[ext_resource type="Texture2D" uid="uid://cdxh1nh20etc7" path="res://Textures/Enemy/kolbold_weak.png" id="1_wa0eo"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_nhupr"]
+radius = 7.0
+
+[sub_resource type="Animation" id="Animation_nhupr"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [0]
+}
+
+[sub_resource type="Animation" id="Animation_1ohc2"]
+resource_name = "walk"
+length = 0.6
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.3, 0.6),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 1,
+"values": [0, 1, 0]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_ggbst"]
+_data = {
+&"RESET": SubResource("Animation_nhupr"),
+&"walk": SubResource("Animation_1ohc2")
+}
+
+[node name="Enemy_Bug_Weak" type="CharacterBody2D" unique_id=1323907592]
+texture_filter = 1
+motion_mode = 1
+script = ExtResource("1_nhupr")
+movement_speed = 15.0
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1780170208]
+position = Vector2(-3, 0)
+texture = ExtResource("1_wa0eo")
+hframes = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1131301035]
+position = Vector2(2.3841858e-07, 3)
+scale = Vector2(0.8666861, -0.7097443)
+shape = SubResource("CapsuleShape2D_nhupr")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=1564995391]
+libraries/ = SubResource("AnimationLibrary_ggbst")
