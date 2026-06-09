@@ -1,0 +1,130 @@
+import os
+import subprocess
+import google.generativeai as genai
+
+var api_key = "AQ.Ab8RN6KG_f5VyKlQpEiXPItSTiZ_oml_fVFrJ7WQnGQsgE6EVA"
+
+# 1. Configure your API key
+genai.configure(api_key=os.getenv("api_key"))
+
+# 2. Define the Local Workspace Tool
+# The model uses the docstring and type hints to understand when and how to call this tool.
+def save_gdscript(file_name: str, directory_path: str, code_content: str) -> str:
+    """
+    Saves or overwrites a GDScript file inside the specified project directory.
+    
+    Args:
+        file_name: The name of the file (e.g., 'player_controller.gd').
+        directory_path: The target folder path relative to the project root (e.g., 'scripts/ui').
+        code_content: The raw GDScript source code.
+    """
+    try:
+        # Ensure target directory exists
+        full_dir = os.path.abspath(directory_path)
+        os.makedirs(full_dir, exist_ok=True)
+        
+        full_path = os.path.join(full_dir, file_name)
+        with open(full_path, "w", encoding="utf-8") as f:
+            f.write(code_content)
+            
+        return f"Successfully saved script to: {full_path}"
+    except Exception as e:
+        return f"Failed to save file due to error: {str(e)}"
+    
+
+def list_project_files(directory_path: str = ".") -> str:
+    """
+    Scans a directory in the Godot project and returns a list of files.
+    Useful for understanding project structure before writing new scripts.
+    
+    Args:
+        directory_path: The folder path relative to the project root (default is root ".").
+    """
+    try:
+        full_dir = os.path.abspath(directory_path)
+        if not os.path.exists(full_dir):
+            return f"Directory not found: {directory_path}"
+        
+        tree = []
+        # Walk the directory, skipping hidden folders like .git or .godot
+        for root, dirs, files in os.walk(full_dir):
+            dirs[:] = [d for d in dirs if not d.startswith('.')]
+            
+            level = root.replace(full_dir, '').count(os.sep)
+            indent = ' ' * 4 * level
+            tree.append(f"{indent}{os.path.basename(root)}/")
+            
+            subindent = ' ' * 4 * (level + 1)
+            for f in files:
+                # Filter to only show relevant Godot files to save token context
+                if f.endswith(('.gd', '.tscn', '.tres')): 
+                    tree.append(f"{subindent}{f}")
+                    
+        return "\n".join(tree)
+    except Exception as e:
+        return f"Failed to list directory: {str(e)}"
+
+def check_syntax(script_path: str) -> str:
+    """
+    Runs Godot's headless compiler to check a GDScript file for syntax errors.
+    Call this AFTER saving a script to verify it is correct.
+    
+    Args:
+        script_path: The path to the .gd file to check (e.g., 'src/combat/combat_manager.gd').
+    """
+    try:
+        full_path = os.path.abspath(script_path)
+        if not os.path.exists(full_path):
+            return f"File not found: {full_path}"
+
+        # Note: 'godot' must be in your system PATH, or you must replace 'godot' 
+        # with the absolute path to your Godot executable (e.g., "C:/Program Files/Godot/godot.exe")
+        command = ["godot", "--headless", "--check-only", full_path]
+        
+        result = subprocess.run(command, capture_output=True, text=True)
+        
+        # Godot outputs compiler warnings/errors to stderr, but may put logs in stdout
+        output = result.stdout + "\n" + result.stderr
+        
+        # Check for common Godot parse error indicators
+        if result.returncode == 0 and "Parse Error" not in output:
+            return f"Syntax check passed cleanly for {script_path}!"
+        else:
+            return f"Syntax errors found in {script_path}. Please fix these:\n{output}"
+            
+    except FileNotFoundError:
+        return "Error: 'godot' executable not found. Ensure Godot is in your system PATH."
+    except Exception as e:
+        return f"Syntax check failed to execute: {str(e)}"
+
+# 3. Initialize the Model with the Tool Environment
+# We use gemini-2.5-pro for complex coding, architectural design, and logic parsing.
+model = genai.GenerativeModel(
+    model_name="gemini-2.5-pro",
+    tools=[save_gdscript, list_project_files, check_syntax],  # Assuming these tools are defined similarly to save_gdscript
+    system_instruction=(
+        "You are an expert Godot 4 engine co-developer specializing in GDScript. "
+        "Your workflow is strictly as follows:\n"
+        "1. Use 'list_project_files' to understand the current directory structure and avoid overwriting existing logic without checking.\n"
+        "2. Write clean, static-typed GDScript code.\n"
+        "3. Use 'save_gdscript' to write the file directly to the user's workspace.\n"
+        "4. ALWAYS use 'check_syntax' on the file you just saved. If the syntax check returns an error, fix the code, save it again, and re-check until it passes.\n"
+        "Do not ask the user to verify the code manually. Verify it yourself using the compiler tool."
+    )
+)
+
+# 4. Start an Automatic Function Calling Chat Session
+chat = model.start_chat(enable_automatic_function_calling=True)
+
+# 5. Execute a Scripting Objective
+prompt = """
+Create a turn-based combat state machine script named 'combat_manager.gd'.
+It should handle states like: INIT, PLAYER_TURN, ENEMY_TURN, RESOLUTION.
+Include basic signals for state transitions and save it to the './src/combat' directory.
+"""
+
+print(f"Sending request to agent...")
+response = chat.send_message(prompt)
+
+print("\n[Agent Response]:")
+print(response.text)
