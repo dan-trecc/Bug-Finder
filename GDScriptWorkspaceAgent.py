@@ -19,33 +19,52 @@ client = genai.Client(api_key=GEMINI_API_KEY)
 # Script tracks execution in the current directory (Godot project root)
 GODOT_PROJECT_ROOT = os.path.abspath(".")
 
+def get_safe_path(directory_path: str, file_name: str = "") -> str:
+    """
+    Resolves the requested path and ensures it does not escape the Godot project root.
+    """
+    # Join the pieces together
+    requested_path = os.path.join(GODOT_PROJECT_ROOT, directory_path, file_name)
+    
+    # Resolve any '../' traversals to get the true absolute path
+    absolute_path = os.path.abspath(requested_path)
+    
+    # SECURITY CHECK: Does the final path still start with the root directory?
+    if not absolute_path.startswith(GODOT_PROJECT_ROOT):
+        raise PermissionError(f"Security violation: Attempted to access path outside project root: {absolute_path}")
+        
+    return absolute_path
+
 # --- 2. THE AGENT'S TOOLS ---
 def save_gdscript(file_name: str, directory_path: str, code_content: str) -> str:
     """Saves or overwrites a GDScript file inside the specified project directory."""
     try:
-        clean_dir_path = directory_path.lstrip('./').lstrip('/')
-        full_dir = os.path.join(GODOT_PROJECT_ROOT, clean_dir_path)
-        os.makedirs(full_dir, exist_ok=True)
+        # 1. Get the secure absolute path for the folder
+        secure_dir = get_safe_path(directory_path)
+        os.makedirs(secure_dir, exist_ok=True)
         
-        full_path = os.path.join(full_dir, file_name)
-        with open(full_path, "w", encoding="utf-8") as f:
+        # 2. Get the secure absolute path for the specific file
+        secure_file_path = get_safe_path(directory_path, file_name)
+        
+        with open(secure_file_path, "w", encoding="utf-8") as f:
             f.write(code_content)
             
-        return f"Successfully saved script to: {full_path}"
+        return f"Successfully saved script to: {secure_file_path}"
+    except PermissionError as pe:
+        return str(pe)
     except Exception as e:
         return f"Failed to save file due to error: {str(e)}"
 
 def list_project_files(directory_path: str = ".") -> str:
     """Scans a directory in the Godot project and returns a list of files."""
     try:
-        clean_dir_path = directory_path.lstrip('./').lstrip('/')
-        full_dir = os.path.join(GODOT_PROJECT_ROOT, clean_dir_path)
+        secure_dir = get_safe_path(directory_path)
         
-        if not os.path.exists(full_dir):
-            return f"Directory not found: {full_dir}"
+        if not os.path.exists(secure_dir):
+            return f"Directory not found: {secure_dir}"
         
         tree = []
-        for root, dirs, files in os.walk(full_dir):
+        for root, dirs, files in os.walk(secure_dir):
             dirs[:] = [d for d in dirs if not d.startswith('.') and d != "addons"]
             level = root.replace(full_dir, '').count(os.sep)
             indent = ' ' * 4 * level
@@ -60,23 +79,36 @@ def list_project_files(directory_path: str = ".") -> str:
         return f"Failed to list directory: {str(e)}"
 
 def check_syntax(script_path: str) -> str:
-    """Runs Godot's headless compiler to check a GDScript file for syntax errors."""
+    """
+    Runs Godot's headless compiler to check a GDScript file for syntax errors.
+    Call this AFTER saving a script to verify it is correct.
+    
+    Args:
+        script_path: The path to the .gd file to check (e.g., 'src/combat/combat_manager.gd').
+    """
     try:
-        clean_path = script_path.lstrip('./').lstrip('/')
-        full_path = os.path.join(GODOT_PROJECT_ROOT, clean_path)
+        # 1. Enforce the security sandbox boundary
+        secure_path = get_safe_path(script_path)
         
-        if not os.path.exists(full_path):
-            return f"File not found: {full_path}"
+        if not os.path.exists(secure_path):
+            return f"File not found: {secure_path}"
 
-        command = ["godot", "--headless", "--check-only", full_path]
+        # 2. Run the headless validation command safely
+        command = ["godot", "--headless", "--check-only", secure_path]
         result = subprocess.run(command, capture_output=True, text=True)
+        
+        # Combine stdout and stderr outputs
         output = result.stdout + "\n" + result.stderr
         
+        # 3. Analyze the results
         if result.returncode == 0 and "Parse Error" not in output:
             return f"Syntax check passed cleanly for {script_path}!"
         else:
             return f"Syntax errors found in {script_path}. Please fix these:\n{output}"
             
+    except PermissionError as pe:
+        # Catch and report unauthorized path escapes safely to the model
+        return str(pe)
     except FileNotFoundError:
         return "Error: 'godot' executable not found. Ensure Godot is in your system PATH."
     except Exception as e:
