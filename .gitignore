@@ -1,3 +1,9 @@
 # Godot 4+ specific ignores
 .godot/
 /android/
+# Sensitive API keys
+.env
+
+# Python virtual environments or caches if applicable
+__pycache__/
+*.pyc
